@@ -8,7 +8,12 @@ var el1 = document.getElementById('c1');
 var ctx1 = el1.getContext('2d');
 var el2 = document.getElementById('c2');
 var ctx2 = el2.getContext('2d');
+
+
+//           OPTIONS!!!!!!!!!
 ctx1.lineWidth = ctx2.lineWidth = 1;
+var rnd_x = 15;   //for vertical line
+var rnd_y = 30;   //for horizontal line
 
 
 function getMousePos(canvas, evt) {
@@ -50,24 +55,24 @@ drawCursor = function(){
 
   if(cursor1.hor_line.show||cursor2.hor_line.show){
     ctx1.beginPath();
-    ctx1.moveTo(cursor1.ver_line.x+0.5,0.5);
-    ctx1.lineTo(cursor1.ver_line.x+0.5, ctx1.canvas.height+0.5);
+    ctx1.moveTo(Math.round(cursor1.ver_line.x/rnd_x)*rnd_x+0.5,0.5);
+    ctx1.lineTo(Math.round(cursor1.ver_line.x/rnd_x)*rnd_x+0.5, ctx1.canvas.height+0.5);
     ctx1.stroke();
     ctx2.beginPath();
-    ctx2.moveTo(cursor2.ver_line.x+0.5,0.5);
-    ctx2.lineTo(cursor2.ver_line.x+0.5, ctx2.canvas.height+0.5);
+    ctx2.moveTo(Math.round(cursor2.ver_line.x/rnd_x)*rnd_x+0.5,0.5);
+    ctx2.lineTo(Math.round(cursor2.ver_line.x/rnd_x)*rnd_x+0.5, ctx2.canvas.height+0.5);
     ctx2.stroke();
 
     if(cursor1.hor_line.show){
       ctx1.beginPath();
-      ctx1.moveTo(0.5,cursor1.hor_line.y+0.5);
-      ctx1.lineTo(ctx1.canvas.width+0.5, cursor1.hor_line.y+0.5);
+      ctx1.moveTo(0.5,Math.round(cursor1.hor_line.y/rnd_y)*rnd_y+0.5);
+      ctx1.lineTo(ctx1.canvas.width+0.5, Math.round(cursor1.hor_line.y/rnd_y)*rnd_y+0.5);
       ctx1.stroke();
     };
     if(cursor2.hor_line.show){
       ctx2.beginPath();
-      ctx2.moveTo(0.5,cursor2.hor_line.y+0.5);
-      ctx2.lineTo(ctx2.canvas.width+0.5, cursor2.hor_line.y+0.5);
+      ctx2.moveTo(0.5,Math.round(cursor2.hor_line.y/rnd_y)*rnd_y+0.5);
+      ctx2.lineTo(ctx2.canvas.width+0.5, Math.round(cursor2.hor_line.y/rnd_y)*rnd_y+0.5);
       ctx2.stroke();
     };
   };
