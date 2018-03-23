@@ -27,6 +27,7 @@
 <body>
 
    <div class="content">
+     <button onclick="add_data()">ADD DATA</button>
       <h2>Candlestick</h2>
       <div style="width:1000px">
          <canvas id="chart1"></canvas>
@@ -40,10 +41,58 @@
    <script>
 
 
+
       const interval = 86400000; //interval for one day in UNIX
       var tempdata = getRandomData('April 01 2017', 60); //randomly generated data
       // console.log(tempdata);
       var data = []; //data with filled empty days
+
+
+
+      // function add_data() {
+      //     data.push({
+      //       o: 22,
+      //       h: 55,
+      //       l: 66,
+      //       c: 34,
+      //       t: data[data.length-1].t+interval,
+      //     });
+      //     data.shift();
+      //     chart1.update();
+      //     bardata.push({
+      //       t: bardata[bardata.length-1].t+interval,
+      //       y: bardata[0].y,
+      //     });
+      //     bardata.shift();
+      //     chart2.update();
+      //     console.log(data);
+      // };
+
+      function add_data() {
+          data.push({
+            o: Math.random()*20,
+            h: Math.random()*20,
+            l: Math.random()*20,
+            c: Math.random()*20,
+            t: data[data.length-1].t+interval,
+          });
+          data.shift();
+          chart1.data.datasets[0].backgroundColor=data.map(function(d) { //set colors for bars (for candles - automaticly (built in chart type))
+             // console.log(d.o < d.c);
+             return d.o < d.c ? color1 : color2;
+          });
+          chart1.update();
+          bardata.push({
+            t: bardata[bardata.length-1].t+interval,
+            y: Math.random()*20+10,
+          });
+          bardata.shift();
+          chart2.data.datasets[0].backgroundColor=data.map(function(d) { //set colors for bars (for candles - automaticly (built in chart type))
+             // console.log(d.o < d.c);
+             return d.o < d.c ? color1 : color2;
+          });
+          chart2.update();
+      };
 
 
       // this thing complete empty days of data with objects, where o, h, c, l = previous object c
@@ -112,6 +161,7 @@
             tooltips: {
                enabled: true,
                intersect: false,
+               position: 'nearest',
                mode: 'x',
                callbacks: {
                   label: function(tooltipItems, data0) { //console logging of candles and bars data at the cursor x-index
@@ -120,7 +170,7 @@
                   }
                },
                custom: function(tooltipModel) {
-                  tooltipModel.opacity = 0;    //hide on-canvas tooltip
+                  //tooltipModel.opacity = 0;    //hide on-canvas tooltip
                }
             },
             // onHover: function(evt) {
@@ -198,7 +248,7 @@
                   }
                },
                custom: function(tooltipModel) {
-                  tooltipModel.opacity = 0;           //hide on-canvas tooltip
+                  //tooltipModel.opacity = 0;           //hide on-canvas tooltip
                }
             },
             scales: {
