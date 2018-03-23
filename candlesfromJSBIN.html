@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <title>Financial > Candlestick | Chart.js sample</title>
+   <script src="http://www.chartjs.org/chartjs-chart-financial/moment.js" type="text/javascript"></script>
+   <script src="http://www.chartjs.org/chartjs-chart-financial/Chart.js" type="text/javascript"></script>
+
+   <!-- <script src="https://npmcdn.com/chart.js@latest/dist/Chart.bundle.min.js" type="text/javascript"></script> -->
+   <script src="http://www.chartjs.org/chartjs-chart-financial/Chart.Financial.js" type="text/javascript"></script>
+   <script src="http://www.chartjs.org/chartjs-chart-financial/utils.js" type="text/javascript"></script>
+
+   <script src="https://hammerjs.github.io/dist/hammer.js" type="text/javascript"></script>
+
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/0.6.3/chartjs-plugin-zoom.js" type="text/javascript"></script>
+
+
+   <link rel="stylesheet" type="text/css" href="../style.css">
+   <link rel="icon" href="../favicon.ico" />
+
+
+
+</head>
+
+<body>
+
+   <div class="content">
+      <h2>Candlestick</h2>
+      <div style="width:1000px">
+         <canvas id="chart1"></canvas>
+      </div>
+      <h2>Bar</h2>
+      <div style="width:1000px">
+         <canvas id="chart2"></canvas>
+      </div>
+   </div>
+
+   <script>
+
+
+      const interval = 86400000; //interval for one day in UNIX
+      var tempdata = getRandomData('April 01 2017', 60); //randomly generated data
+      // console.log(tempdata);
+      var data = []; //data with filled empty days
+
+
+      // this thing complete empty days of data with objects, where o, h, c, l = previous object c
+      for (i = 0; i < tempdata.length - 1; i++) {
+         data.push(tempdata[i]);
+         for (k = 0; k < (tempdata[i + 1].t - tempdata[i].t) / interval - 1; k++) { //in for - it`s quantity of "lost" time units without data
+            let tempobject = {
+               o: tempdata[i].c,
+               h: tempdata[i].c,
+               l: tempdata[i].c,
+               c: tempdata[i].c,
+               t: tempdata[i].t + (k + 1) * interval,
+            };
+            data.push(tempobject);
+         }
+      };
+
+      data.push(tempdata[tempdata.length - 1]);
+
+
+      data.w = 8; //width of candles and bars
+
+
+
+      var color1 = '#060';
+      var color2 = '#600';
+
+      var datacolors = data.map(function(d) { //set colors for bars (for candles - automaticly (built in chart type))
+         // console.log(d.o < d.c);
+         return d.o < d.c ? color1 : color2;
+      });
+
+      // var line = {
+      //   x: 0,
+      //   y: 0,
+      //   show: false
+      // };
+      //
+      // function updateLine() {
+      //   if(line.show) {
+      //     window.chart1.options.customLine.x = window.chart2.options.customLine.x = line.x;
+      //   } else {
+      //     window.chart1.options.customLine.x = window.chart2.options.customLine.x = 0;
+      //   }
+      // }
+
+
+
+      // Candlestick
+      var ctx = document.getElementById("chart1").getContext("2d");
+      ctx.canvas.width = 2000;
+      ctx.canvas.height = 500;
+      var chart1 = new Chart(ctx, {
+         type: 'candlestick',
+         data: {
+            datasets: [{
+               borderColor: '#000',
+               backgroundColor: datacolors,
+               label: "Candlezzz",
+               data: data,
+               fractionalDigitsCount: 8,
+            }],
+         },
+
+         options: {
+            tooltips: {
+               enabled: true,
+               intersect: false,
+               mode: 'x',
+               callbacks: {
+                  label: function(tooltipItems, data0) { //console logging of candles and bars data at the cursor x-index
+                     console.log(data[tooltipItems.index]);
+                     console.log(bardata[tooltipItems.index]);
+                  }
+               },
+               custom: function(tooltipModel) {
+                  tooltipModel.opacity = 0;    //hide on-canvas tooltip
+               }
+            },
+            // onHover: function(evt) {
+            //    var firstPoint = chart1.getElementsAtEvent(evt)[0];
+            //    if (firstPoint) {
+            //       var value = chart1.data.datasets[firstPoint._datasetIndex].data[firstPoint._index];
+            //       console.log(value);
+            //    };
+            // },
+
+            scales: {
+               xAxes: [{
+                  barThickness: data.w,
+                  offset: true,
+                  type: 'time',
+                  display: true,
+                  distribution: 'linear',
+                  ticks: {
+                     maxRotation: 0,
+                     callback: function(value, index, values) {
+                        // if (moment(data[index].t).day() == 1) return moment(data[index].t).format('D.M');
+                        if (index % 4 == 0) return moment(data[index].t).format('D.M'); //show only every 4 tick on x-scale
+                     }
+                  },
+               }],
+               yAxes: [{
+                  position: 'right',
+               }],
+            },
+
+            legend: {
+               display: false,
+            },
+         },
+      });
+
+
+      var bardata = [];
+      data.forEach(function(element) { //sets some random data as bars
+         bardata.push({
+            t: element.t,
+            y: 10 * Math.log(element.c + element.h), //just some random data
+         });
+      });
+      bardata.w = data.w; //bars width
+
+
+
+
+      var ctx0 = document.getElementById("chart2").getContext("2d");
+      ctx0.canvas.width = 2000;
+      ctx0.canvas.height = 500;
+      var chart2 = new Chart(ctx0, {
+         type: 'bar',
+         data: {
+            datasets: [{
+               borderColor: '#000',
+               borderWidth: 1,
+               label: "Bar",
+               backgroundColor: datacolors,
+               data: bardata,
+               fractionalDigitsCount: 8,
+            }],
+         },
+         options: {
+            tooltips: {
+               enabled: true,
+               intersect: false,
+               mode: 'x',
+               callbacks: {
+                  label: function(tooltipItems, data0) { //console logging of candle and bar under cursor (x-axis)
+                     console.log(data[tooltipItems.index]);
+                     console.log(bardata[tooltipItems.index]);
+
+                  }
+               },
+               custom: function(tooltipModel) {
+                  tooltipModel.opacity = 0;           //hide on-canvas tooltip
+               }
+            },
+            scales: {
+               xAxes: [{
+                  type: 'time',
+                  display: true,
+                  offset: true,
+                  distribution: 'linear',
+                  barThickness: bardata.w,
+                  categoryPercentage: 0.5,
+                  gridLines: {
+                     offsetGridLines: false,
+                  },
+                  ticks: {
+                     maxRotation: 0,
+                     callback: function(value, index, values) {
+                        //if (moment(bardata[index * 2].t).day() == 1) return moment(bardata[index * 2].t).format('D.M');
+                        if (index % 2 == 0) return (moment(bardata[index * 2].t).format('D.M')); //show only every 4 tick on x-scale. NOTE!!!!!!!!!!!!!!!!!! indexes are going like this - 0 - 1 May, 1 - 3 May, 2 - 5 May
+                     }
+                  },
+               }],
+               yAxes: [{
+                  position: 'right',
+               }],
+            },
+            legend: {
+               display: false,
+            },
+         },
+      });
+   </script>
+</body>
+
+</html>

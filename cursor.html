@@ -1,0 +1,104 @@
+</head>
+
+<body>
+<canvas id="c1" width="300" height="300"></canvas>
+<canvas id="c2" width="300" height="300"></canvas>
+<script>
+var el1 = document.getElementById('c1');
+var ctx1 = el1.getContext('2d');
+var el2 = document.getElementById('c2');
+var ctx2 = el2.getContext('2d');
+ctx1.lineWidth = ctx2.lineWidth = 1;
+
+
+function getMousePos(canvas, evt) {
+    var rect = canvas.getBoundingClientRect();
+    return {
+        x: (evt.clientX - rect.left) / (rect.right - rect.left) * canvas.width,
+        y: (evt.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height
+    };
+};
+
+
+
+var cursor1={
+    hor_line:{
+      show:false,
+      y:0,
+    },
+    ver_line:{
+      x:0,
+    }
+};
+
+
+var cursor2={
+    hor_line:{
+      show:false,
+      y:0,
+    },
+    ver_line:{
+      x:0,
+    }
+};
+
+  ctx1.strokeStyle=ctx2.strokeStyle='black';
+
+drawCursor = function(){
+  ctx1.clearRect(0, 0, ctx1.canvas.width, ctx1.canvas.height);
+  ctx2.clearRect(0, 0, ctx1.canvas.width, ctx1.canvas.height);
+
+  if(cursor1.hor_line.show||cursor2.hor_line.show){
+    ctx1.beginPath();
+    ctx1.moveTo(cursor1.ver_line.x+0.5,0.5);
+    ctx1.lineTo(cursor1.ver_line.x+0.5, ctx1.canvas.height+0.5);
+    ctx1.stroke();
+    ctx2.beginPath();
+    ctx2.moveTo(cursor2.ver_line.x+0.5,0.5);
+    ctx2.lineTo(cursor2.ver_line.x+0.5, ctx2.canvas.height+0.5);
+    ctx2.stroke();
+
+    if(cursor1.hor_line.show){
+      ctx1.beginPath();
+      ctx1.moveTo(0.5,cursor1.hor_line.y+0.5);
+      ctx1.lineTo(ctx1.canvas.width+0.5, cursor1.hor_line.y+0.5);
+      ctx1.stroke();
+    };
+    if(cursor2.hor_line.show){
+      ctx2.beginPath();
+      ctx2.moveTo(0.5,cursor2.hor_line.y+0.5);
+      ctx2.lineTo(ctx2.canvas.width+0.5, cursor2.hor_line.y+0.5);
+      ctx2.stroke();
+    };
+  };
+};
+
+
+el1.onmousemove = function(e) {
+  cursor1.hor_line.show=cursor2.hor_line.show = false;
+  if ( (getMousePos(el1,e).y <= ctx1.canvas.height) &&
+  (getMousePos(el1,e).y >= 0 ) && (getMousePos(el1,e).x <= ctx1.canvas.width) && (getMousePos(el1,e).x >= 0) ){
+    cursor1.hor_line.y=getMousePos(el1,e).y;
+    cursor1.hor_line.show=true;
+    cursor2.ver_line.x=cursor1.ver_line.x=getMousePos(el1,e).x;
+  };
+
+  drawCursor();
+};
+
+el2.onmousemove = function(e) {
+  cursor1.hor_line.show=cursor2.hor_line.show = false;
+  if ( (getMousePos(el2,e).y <= ctx2.canvas.height) &&
+  (getMousePos(el2,e).y >= 0 ) && (getMousePos(el2,e).x <= ctx2.canvas.width) && (getMousePos(el2,e).x >= 0) ){
+    cursor2.hor_line.y=getMousePos(el2,e).y;
+    cursor2.hor_line.show=true;
+    cursor2.ver_line.x=cursor1.ver_line.x=getMousePos(el2,e).x;
+  };
+
+  drawCursor();
+};
+
+</script>
+</body>
+
+</html>
