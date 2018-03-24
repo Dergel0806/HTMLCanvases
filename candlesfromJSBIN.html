@@ -28,6 +28,7 @@
 
    <div class="content">
      <button onclick="add_data()">ADD DATA</button>
+     <button onclick="set_quantity()">Set quantity 20</button>
       <h2>Candlestick</h2>
       <div style="width:1000px">
          <canvas id="chart1"></canvas>
@@ -39,34 +40,101 @@
    </div>
 
    <script>
+      var tempdata1 = getRandomData('April 01 2017', 60);   //randomly generated data    ISN`T NEEDED IN PRODUCTION!
+      var tempdata2 = [];                                   //data for bars + candles
+      var cutted_data = [];                                 //data with quantity applied
+      var data = [];                                        //data with filled empty days    THIS IS THE COMPLETE FORM OF DATA!
+
+
+      //function for random data generation (part 2), ISN`T needed for production version
+      tempdata1.forEach(function(element) {
+         tempdata2.push({
+           o:element.o,
+           h:element.h,
+           l:element.l,
+           c:element.c,
+           y:Math.random()*15+10,
+           t:element.t,
+         });
+      });
 
 
 
-      const interval = 86400000; //interval for one day in UNIX
-      var tempdata = getRandomData('April 01 2017', 60); //randomly generated data
-      // console.log(tempdata);
-      var data = []; //data with filled empty days
 
 
 
-      // function add_data() {
-      //     data.push({
-      //       o: 22,
-      //       h: 55,
-      //       l: 66,
-      //       c: 34,
-      //       t: data[data.length-1].t+interval,
-      //     });
-      //     data.shift();
-      //     chart1.update();
-      //     bardata.push({
-      //       t: bardata[bardata.length-1].t+interval,
-      //       y: bardata[0].y,
-      //     });
-      //     bardata.shift();
-      //     chart2.update();
-      //     console.log(data);
-      // };
+
+
+            //OPTIONS
+      const interval = 86400000;    //interval for one day in UNIX
+      var quantity = 20;            //quantity of data to show
+      var candle_tick_scale = 4;    //show every X tick on candles scale
+      var bar_tick_scale = 2;       //show every X tick on bar scale
+      data.w = 8;                   //width of candles and bars
+      var color1 = '#060';          //green color    for bars background color
+      var color2 = '#600';          //red color      for bars background color
+
+
+
+
+      //filling emty days with rule - if day is empty, his o, h, l, c = previousobject.c, and y = 0
+      for (i = 0; i < tempdata2.length - 1; i++) {
+         data.push(tempdata2[i]);
+         for (k = 0; k < (tempdata2[i + 1].t - tempdata2[i].t) / interval - 1; k++) { //in for - it`s quantity of "lost" time units without data
+            let tempobject = {
+               o: tempdata2[i].c,
+               h: tempdata2[i].c,
+               l: tempdata2[i].c,
+               c: tempdata2[i].c,
+               y:0,
+               t: tempdata2[i].t + (k + 1) * interval,
+            };
+            data.push(tempobject);
+         }
+      };
+      data.push(tempdata2[tempdata2.length - 1]);
+
+
+
+
+
+      var datacolors = data.map(function(d) { //set colors for bars (for candles - automaticly (built in chart type))
+         return d.o < d.c ? color1 : color2;
+      });
+
+
+
+      function set_quantity(){
+        cutted_data = [];
+        cutted_bardata = [];
+        for(i=Math.max(0,data.length-quantity); i<data.length; i++){
+          cutted_data.push(data[i]);
+          cutted_bardata.push(bardata[i]);
+        };
+        chart1.data.datasets[0].data=cutted_data;
+        chart2.data.datasets[0].data=cutted_bardata;
+        chart2.update();
+        chart1.update();
+      };
+
+
+
+      custom_candle_tick_func = function(value, index, values){
+      if (true){if (index % candle_tick_scale == 0) return moment(data[index].t).format('D.M'); //show only every 4 tick on x-scale
+      }
+      else{
+        if (index % custom_candle_tick_scale == 0) return moment(cutted_data[index].t).format('D.M');
+      }
+    };
+
+    custom_bar_tick_func = function (value, index, values){
+      if (true){if (index % bar_tick_scale == 0) return (moment(data[index * 2].t).format('D.M')); //show only every 4 tick on x-scale. NOTE!!!!!!!!!!!!!!!!!! indexes are going like this - 0 - 1 May, 1 - 3 May, 2 - 5 May
+      }
+      else{
+        if (index % custom_bar_tick_scale == 0) return moment(data[index *2].t).format('D.M');
+      }
+    }
+
 
       function add_data() {
           data.push({
@@ -95,51 +163,6 @@
       };
 
 
-      // this thing complete empty days of data with objects, where o, h, c, l = previous object c
-      for (i = 0; i < tempdata.length - 1; i++) {
-         data.push(tempdata[i]);
-         for (k = 0; k < (tempdata[i + 1].t - tempdata[i].t) / interval - 1; k++) { //in for - it`s quantity of "lost" time units without data
-            let tempobject = {
-               o: tempdata[i].c,
-               h: tempdata[i].c,
-               l: tempdata[i].c,
-               c: tempdata[i].c,
-               t: tempdata[i].t + (k + 1) * interval,
-            };
-            data.push(tempobject);
-         }
-      };
-
-      data.push(tempdata[tempdata.length - 1]);
-
-
-      data.w = 8; //width of candles and bars
-
-
-
-      var color1 = '#060';
-      var color2 = '#600';
-
-      var datacolors = data.map(function(d) { //set colors for bars (for candles - automaticly (built in chart type))
-         // console.log(d.o < d.c);
-         return d.o < d.c ? color1 : color2;
-      });
-
-      // var line = {
-      //   x: 0,
-      //   y: 0,
-      //   show: false
-      // };
-      //
-      // function updateLine() {
-      //   if(line.show) {
-      //     window.chart1.options.customLine.x = window.chart2.options.customLine.x = line.x;
-      //   } else {
-      //     window.chart1.options.customLine.x = window.chart2.options.customLine.x = 0;
-      //   }
-      // }
-
-
 
       // Candlestick
       var ctx = document.getElementById("chart1").getContext("2d");
@@ -152,11 +175,18 @@
                borderColor: '#000',
                backgroundColor: datacolors,
                label: "Candlezzz",
-               data: data,
+               data: data.map(function(d) { //set colors for bars (for candles - automaticly (built in chart type))
+                  return {
+                    o:d.o,
+                    h:d.h,
+                    l:d.l,
+                    c:d.c,
+                    t:d.t,
+                  };
+               }),
                fractionalDigitsCount: 8,
             }],
          },
-
          options: {
             tooltips: {
                enabled: true,
@@ -165,22 +195,16 @@
                mode: 'x',
                callbacks: {
                   label: function(tooltipItems, data0) { //console logging of candles and bars data at the cursor x-index
-                     console.log(data[tooltipItems.index]);
-                     console.log(bardata[tooltipItems.index]);
+                    console.log({
+                      data:data[tooltipItems.index],
+                      tooltip_index:tooltipItems.index,
+                    });
                   }
                },
                custom: function(tooltipModel) {
-                  //tooltipModel.opacity = 0;    //hide on-canvas tooltip
+                  tooltipModel.opacity = 0;    //hide on-canvas tooltip
                }
             },
-            // onHover: function(evt) {
-            //    var firstPoint = chart1.getElementsAtEvent(evt)[0];
-            //    if (firstPoint) {
-            //       var value = chart1.data.datasets[firstPoint._datasetIndex].data[firstPoint._index];
-            //       console.log(value);
-            //    };
-            // },
-
             scales: {
                xAxes: [{
                   barThickness: data.w,
@@ -191,8 +215,7 @@
                   ticks: {
                      maxRotation: 0,
                      callback: function(value, index, values) {
-                        // if (moment(data[index].t).day() == 1) return moment(data[index].t).format('D.M');
-                        if (index % 4 == 0) return moment(data[index].t).format('D.M'); //show only every 4 tick on x-scale
+                        return (custom_candle_tick_func(value, index, values));
                      }
                   },
                }],
@@ -200,24 +223,11 @@
                   position: 'right',
                }],
             },
-
             legend: {
                display: false,
             },
          },
       });
-
-
-      var bardata = [];
-      data.forEach(function(element) { //sets some random data as bars
-         bardata.push({
-            t: element.t,
-            y: 10 * Math.log(element.c + element.h), //just some random data
-         });
-      });
-      bardata.w = data.w; //bars width
-
-
 
 
       var ctx0 = document.getElementById("chart2").getContext("2d");
@@ -231,7 +241,12 @@
                borderWidth: 1,
                label: "Bar",
                backgroundColor: datacolors,
-               data: bardata,
+               data: data.map(function(d) { //set colors for bars (for candles - automaticly (built in chart type))
+                  return {
+                    y:d.y,
+                    t:d.t,
+                  };
+               }),
                fractionalDigitsCount: 8,
             }],
          },
@@ -242,13 +257,14 @@
                mode: 'x',
                callbacks: {
                   label: function(tooltipItems, data0) { //console logging of candle and bar under cursor (x-axis)
-                     console.log(data[tooltipItems.index]);
-                     console.log(bardata[tooltipItems.index]);
-
+                     console.log({
+                       data:data[tooltipItems.index],
+                       tooltip_index:tooltipItems.index,
+                     });
                   }
                },
                custom: function(tooltipModel) {
-                  //tooltipModel.opacity = 0;           //hide on-canvas tooltip
+                  tooltipModel.opacity = 0;           //hide on-canvas tooltip
                }
             },
             scales: {
@@ -257,7 +273,7 @@
                   display: true,
                   offset: true,
                   distribution: 'linear',
-                  barThickness: bardata.w,
+                  barThickness: data.w,
                   categoryPercentage: 0.5,
                   gridLines: {
                      offsetGridLines: false,
@@ -265,8 +281,7 @@
                   ticks: {
                      maxRotation: 0,
                      callback: function(value, index, values) {
-                        //if (moment(bardata[index * 2].t).day() == 1) return moment(bardata[index * 2].t).format('D.M');
-                        if (index % 2 == 0) return (moment(bardata[index * 2].t).format('D.M')); //show only every 4 tick on x-scale. NOTE!!!!!!!!!!!!!!!!!! indexes are going like this - 0 - 1 May, 1 - 3 May, 2 - 5 May
+                        return custom_bar_tick_func (value, index, values);
                      }
                   },
                }],
@@ -281,5 +296,4 @@
       });
    </script>
 </body>
-
 </html>
