@@ -58,10 +58,6 @@
 
                 //OPTIONS
     const interval = 86400000; //interval for one day in UNIX
-    var quantity = 83; //default quantity of data to show. NOTE!!!!! function set_quantity saves the last set quantity in this variable
-    var candle_tick_scale = 4; //show every X tick on candles scale
-    var bar_tick_scale = 4; //show every X tick on bar scale
-    data.w = 8; //width of candles and bars
     var color1 = '#060'; //green color    for bars background color
     var color2 = '#600'; //red color      for bars background color
 
@@ -85,6 +81,8 @@
     };
     data.push(tempdata2[tempdata2.length - 1]);
 
+
+    var quantity = data.length; //default quantity of data to show. NOTE!!!!! function set_quantity saves the last set quantity in this variable
     var cutted_data = data.slice(); //data with quantity applied
 
     function set_quantity(quan) {
@@ -120,12 +118,8 @@
 
 
 
-    custom_candle_tick_func = function(value, index, values) {
-      if (index % candle_tick_scale == 0) return moment(cutted_data[index].t).format('D.M'); //show only every 4 tick on x-scale
-    };
-
-    custom_bar_tick_func = function(value, index, values) {
-      if (index % bar_tick_scale == 0) return moment(cutted_data[index].t).format('D.M'); //show only every 4 tick on x-scale. 
+    custom_tick_func = function(value, index, values) {
+      if (index % Math.round(quantity/20) == 0) return moment(cutted_data[index].t).format('D.M'); //show only every 4 tick on x-scale
     };
 
 
@@ -204,7 +198,6 @@
         },
         scales: {
           xAxes: [{
-            barThickness: data.w,
             offset: true,
             type: 'time',
             display: true,
@@ -212,7 +205,7 @@
             ticks: {
               maxRotation: 0,
               callback: function(value, index, values) {
-                return (custom_candle_tick_func(value, index, values));
+                return (custom_tick_func(value, index, values));
               }
             },
           }],
@@ -268,8 +261,6 @@
             offset: true,
             autoSkip: false,
             distribution: 'linear',
-            barThickness: data.w,
-            categoryPercentage: 0.5,
             gridLines: {
               offsetGridLines: false,
             },
@@ -277,7 +268,7 @@
               maxRotation: 0,
               source: 'data',
               callback: function(value, index, values) {
-                return custom_bar_tick_func(value, index, values);
+                return custom_tick_func(value, index, values);
               }
             },
           }],
