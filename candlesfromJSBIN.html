@@ -7,16 +7,12 @@
   <title>Financial > Candlestick | Chart.js sample</title>
   <script src="http://www.chartjs.org/chartjs-chart-financial/moment.js" type="text/javascript"></script>
   <script src="http://www.chartjs.org/chartjs-chart-financial/Chart.js" type="text/javascript"></script>
-
   <!-- <script src="https://npmcdn.com/chart.js@latest/dist/Chart.bundle.min.js" type="text/javascript"></script> -->
   <script src="http://www.chartjs.org/chartjs-chart-financial/Chart.Financial.js" type="text/javascript"></script>
   <script src="http://www.chartjs.org/chartjs-chart-financial/utils.js" type="text/javascript"></script>
-
   <script src="https://hammerjs.github.io/dist/hammer.js" type="text/javascript"></script>
-
   <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/0.6.3/chartjs-plugin-zoom.js" type="text/javascript"></script> -->
-
-  <!-- <script src="http://code.jquery.com/jquery-1.8.3.js"></script> -->
+  <script src="http://code.jquery.com/jquery-1.8.3.js"></script>
 
 
 </head>
@@ -28,19 +24,156 @@
     <button onclick="set_quantity(20)">Set quantity 20</button>
     <button onclick="set_quantity(data.length)">Set quantity max</button>
     <h2>Candlestick</h2>
-    <div style="width:1000px">
-      <canvas id="chart1"></canvas>
-    </div>
-    <h2>Bar</h2>
-    <div style="width:1000px">
-      <canvas id="chart2"></canvas>
+    <div style="height:550px; width:1000px; position: relative;">
+      <canvas id="cursor1" style="height:500px; width:1000px; position:absolute; left:0;top:0; z-index:2;"></canvas>
+      <canvas id="chart1" style="height:500px; width:1000px; position:absolute; left:0;top:0; z-index:1;"></canvas>
     </div>
   </div>
+  <h2>Bar</h2>
+  <div style="height:550px; width:1000px; position: relative;">
+    <canvas id="cursor2" style="height:500px; width:1000px; position:absolute; left:50;top:50; z-index:2;"></canvas>
+    <canvas id="chart2" style="height:500px; width:1000px; position:absolute; left:0;top:0; z-index:1;"></canvas>
+  </div>
+  </div>
+
 
   <script>
-    var tempdata1 = getRandomData('April 01 2017', 60);          //randomly generated data    ISN`T NEEDED IN PRODUCTION!
-    var tempdata2 = [];                                          //data for bars + candles
-    var data = [];                                               //data with filled empty days    THIS IS THE COMPLETE FORM OF DATA!
+    var el1 = document.getElementById('cursor1');
+    var ctx1 = el1.getContext('2d');
+    var el2 = document.getElementById('cursor2');
+    var ctx2 = el2.getContext('2d');
+
+    ctx1.canvas.height = 500;
+    ctx1.canvas.width = 1000;
+    ctx2.canvas.height = 500;
+    ctx2.canvas.width = 1000;
+
+
+    //           OPTIONS!!!!!!!!!
+    ctx1.lineWidth = ctx2.lineWidth = 1;
+    var rnd_x = 50; //for vertical line
+    var rnd_y = 1; //for horizontal line
+
+
+    function getMousePos(canvas, evt) {
+      var rect = canvas.getBoundingClientRect();
+      return {
+        x: (evt.clientX - rect.left) / (rect.right - rect.left) * canvas.width,
+        y: (evt.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height
+      };
+    };
+
+
+
+    var cursor1 = {
+      hor_line: {
+        show: false,
+        y: 0,
+      },
+      ver_line: {
+        x: 0,
+      }
+    };
+
+
+    var cursor2 = {
+      hor_line: {
+        show: false,
+        y: 0,
+      },
+      ver_line: {
+        x: 0,
+      }
+    };
+
+    ctx1.strokeStyle = ctx2.strokeStyle = 'black';
+
+    // el1.onmousemove = function(e) {
+    //   cursor1.hor_line.show=cursor2.hor_line.show = false;
+    //   if ( (getMousePos(el1,e).y <= ctx1.canvas.height) &&
+    //   (getMousePos(el1,e).y >=0) && (getMousePos(el1,e).x <= ctx1.canvas.width) && (getMousePos(el1,e).x >= 0) ){
+    //     cursor1.hor_line.y=getMousePos(el1,e).y;
+    //     cursor1.hor_line.show=true;
+    //     cursor2.ver_line.x=cursor1.ver_line.x=getMousePos(el1,e).x;
+    //   };
+    // };
+    //
+    // el2.onmousemove = function(e) {
+    //   cursor1.hor_line.show=cursor2.hor_line.show = false;
+    //   if ( (getMousePos(el2,e).y <= ctx2.canvas.height) &&
+    //   (getMousePos(el2,e).y >= 0) && (getMousePos(el2,e).x <= ctx2.canvas.width) && (getMousePos(el2,e).x >= 0) ){
+    //     cursor2.hor_line.y=getMousePos(el2,e).y;
+    //     cursor2.hor_line.show=true;
+    //     cursor2.ver_line.x=cursor1.ver_line.x=getMousePos(el2,e).x;
+    //   };
+    // };
+
+    $(document).ready(function() {
+      $(document).mousemove(function() {
+        ctx1.clearRect(0, 0, ctx1.canvas.width, ctx1.canvas.height);
+        ctx2.clearRect(0, 0, ctx2.canvas.width, ctx2.canvas.height);
+
+        $("#cursor1").mousemove(function() {
+          if ((getMousePos(el1, event).y <= ctx1.canvas.height) &&
+            (getMousePos(el1, event).y >= 0) && (getMousePos(el1, event).x <= ctx1.canvas.width) && (getMousePos(el1, event).x >= 0)) {
+            cursor1.hor_line.y = getMousePos(el1, event).y;
+            cursor1.hor_line.show = true;
+            cursor2.ver_line.x = cursor1.ver_line.x = getMousePos(el1, event).x;
+          };
+        });
+
+        $("#cursor2").mousemove(function() {
+          if ((getMousePos(el2, event).y <= ctx2.canvas.height) &&
+            (getMousePos(el2, event).y >= 0) && (getMousePos(el2, event).x <= ctx2.canvas.width) && (getMousePos(el2, event).x >= 0)) {
+            cursor2.hor_line.y = getMousePos(el2, event).y;
+            cursor2.hor_line.show = true;
+            cursor2.ver_line.x = cursor1.ver_line.x = getMousePos(el2, event).x;
+          };
+        });
+
+        drawCursor();
+      });
+
+    });
+
+
+
+    drawCursor = function() {
+
+      rnd_x = 2 * (ctx1.canvas.width - 10) / quantity;
+
+      if (cursor1.hor_line.show || cursor2.hor_line.show) {
+        ctx1.beginPath();
+        ctx1.moveTo(Math.round(cursor1.ver_line.x / rnd_x) * rnd_x + 0.5, 0.5);
+        ctx1.lineTo(Math.round(cursor1.ver_line.x / rnd_x) * rnd_x + 0.5, ctx1.canvas.height - 0.5);
+        ctx1.stroke();
+        ctx2.beginPath();
+        ctx2.moveTo(Math.round(cursor2.ver_line.x / rnd_x) * rnd_x + 0.5, 0.5);
+        ctx2.lineTo(Math.round(cursor2.ver_line.x / rnd_x) * rnd_x + 0.5, ctx2.canvas.height - 0.5);
+        ctx2.stroke();
+
+        if (cursor1.hor_line.show) {
+          ctx1.beginPath();
+          ctx1.moveTo(0.5, Math.round(cursor1.hor_line.y / rnd_y) * rnd_y + 0.5);
+          ctx1.lineTo(ctx1.canvas.width - 0.5, Math.round(cursor1.hor_line.y / rnd_y) * rnd_y + 0.5);
+          ctx1.stroke();
+        };
+        if (cursor2.hor_line.show) {
+          ctx2.beginPath();
+          ctx2.moveTo(0.5, Math.round(cursor2.hor_line.y / rnd_y) * rnd_y + 0.5);
+          ctx2.lineTo(ctx2.canvas.width - 0.5, Math.round(cursor2.hor_line.y / rnd_y) * rnd_y + 0.5);
+          ctx2.stroke();
+        };
+      };
+      cursor1.hor_line.show = cursor2.hor_line.show = false;
+    };
+
+
+
+
+    var tempdata1 = getRandomData('April 01 2017', 60); //randomly generated data    ISN`T NEEDED IN PRODUCTION!
+    var tempdata2 = []; //data for bars + candles
+    var data = []; //data with filled empty days    THIS IS THE COMPLETE FORM OF DATA!
 
 
     //function for random data generation (part 2), ISN`T needed for production version
@@ -56,7 +189,7 @@
     });
 
 
-                //OPTIONS
+    //OPTIONS
     const interval = 86400000; //interval for one day in UNIX
     var color1 = '#060'; //green color    for bars background color
     var color2 = '#600'; //red color      for bars background color
@@ -90,7 +223,7 @@
       for (i = Math.max(0, data.length - quan); i < data.length; i++) {
         cutted_data.push(data[i]);
       };
-      chart1.data.datasets[0].data = cutted_data.map(function(d) { //set colors for bars (for candles - automaticly (built in chart type))
+      chart1.data.datasets[0].data = cutted_data.map(function(d) {
         return {
           o: d.o,
           h: d.h,
@@ -99,19 +232,19 @@
           t: d.t,
         };
       });
-      chart2.data.datasets[0].data = cutted_data.map(function(d) { //set colors for bars (for candles - automaticly (built in chart type))
+      chart2.data.datasets[0].data = cutted_data.map(function(d) {
         return {
           y: d.y,
           t: d.t,
         };
       });
       chart1.data.datasets[0].backgroundColor = cutted_data.map(function(d) { //set colors for bars (for candles - automaticly (built in chart type))
-             return d.o < d.c ? color1 : color2;
+        return d.o < d.c ? color1 : color2;
       });
       chart2.data.datasets[0].backgroundColor = cutted_data.map(function(d) { //set colors for bars (for candles - automaticly (built in chart type))
-             return d.o < d.c ? color1 : color2;
+        return d.o < d.c ? color1 : color2;
       });
-      quantity=quan;
+      quantity = quan;
       chart1.update();
       chart2.update();
     };
@@ -119,7 +252,7 @@
 
 
     custom_tick_func = function(value, index, values) {
-      if (index % Math.round(quantity/20) == 0) return moment(cutted_data[index].t).format('D.M'); //show only every 4 tick on x-scale
+      if (index % Math.round(quantity / 20) == 0) return moment(cutted_data[index].t).format('D.M'); //show only every quantity/20 tick on x-scale
     };
 
 
@@ -133,8 +266,8 @@
         t: cutted_data[cutted_data.length - 1].t + interval,
       });
       cutted_data.shift();
-      data.push(cutted_data[cutted_data.length-1]);
-      chart1.data.datasets[0].data = cutted_data.map(function(d) {                   //set colors for bars (for candles - automaticly (built in chart type))
+      data.push(cutted_data[cutted_data.length - 1]);
+      chart1.data.datasets[0].data = cutted_data.map(function(d) {
         return {
           o: d.o,
           h: d.h,
@@ -143,7 +276,7 @@
           t: d.t,
         };
       });
-      chart2.data.datasets[0].data = cutted_data.map(function(d) {                   //set colors for bars (for candles - automaticly (built in chart type))
+      chart2.data.datasets[0].data = cutted_data.map(function(d) {
         return {
           y: d.y,
           t: d.t,
@@ -163,8 +296,6 @@
 
     // Candlestick
     var ctx = document.getElementById("chart1").getContext("2d");
-    ctx.canvas.width = 2000;
-    ctx.canvas.height = 500;
     var chart1 = new Chart(ctx, {
       type: 'candlestick',
       data: {
@@ -188,7 +319,7 @@
             label: function(tooltipItems, data0) { //console logging of candles and bars data at the cursor x-index
               console.log({
                 data: cutted_data[tooltipItems.index],
-                tooltip_index: tooltipItems.index,
+                tooltip_index: tooltipItems.index
               });
             }
           },
@@ -221,8 +352,6 @@
 
 
     var ctx0 = document.getElementById("chart2").getContext("2d");
-    ctx0.canvas.width = 2000;
-    ctx0.canvas.height = 500;
     var chart2 = new Chart(ctx0, {
       type: 'bar',
       data: {
