@@ -5,14 +5,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Financial > Candlestick | Chart.js sample</title>
-  <script src="http://www.chartjs.org/chartjs-chart-financial/moment.js" type="text/javascript"></script>
-  <script src="http://www.chartjs.org/chartjs-chart-financial/Chart.js" type="text/javascript"></script>
+  <script src="https://www.chartjs.org/chartjs-chart-financial/moment.js" type="text/javascript"></script>
+  <script src="https://www.chartjs.org/chartjs-chart-financial/Chart.js" type="text/javascript"></script>
   <!-- <script src="https://npmcdn.com/chart.js@latest/dist/Chart.bundle.min.js" type="text/javascript"></script> -->
-  <script src="http://www.chartjs.org/chartjs-chart-financial/Chart.Financial.js" type="text/javascript"></script>
-  <script src="http://www.chartjs.org/chartjs-chart-financial/utils.js" type="text/javascript"></script>
+  <script src="https://www.chartjs.org/chartjs-chart-financial/Chart.Financial.js" type="text/javascript"></script>
+  <script src="https://www.chartjs.org/chartjs-chart-financial/utils.js" type="text/javascript"></script>
   <script src="https://hammerjs.github.io/dist/hammer.js" type="text/javascript"></script>
   <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/0.6.3/chartjs-plugin-zoom.js" type="text/javascript"></script> -->
-  <script src="http://code.jquery.com/jquery-1.8.3.js"></script>
+  <script src="https://code.jquery.com/jquery-1.8.3.js" type="text/javascript"></script>
 
 
 </head>
@@ -88,25 +88,6 @@
 
     ctx1.strokeStyle = ctx2.strokeStyle = 'black';
 
-    // el1.onmousemove = function(e) {
-    //   cursor1.hor_line.show=cursor2.hor_line.show = false;
-    //   if ( (getMousePos(el1,e).y <= ctx1.canvas.height) &&
-    //   (getMousePos(el1,e).y >=0) && (getMousePos(el1,e).x <= ctx1.canvas.width) && (getMousePos(el1,e).x >= 0) ){
-    //     cursor1.hor_line.y=getMousePos(el1,e).y;
-    //     cursor1.hor_line.show=true;
-    //     cursor2.ver_line.x=cursor1.ver_line.x=getMousePos(el1,e).x;
-    //   };
-    // };
-    //
-    // el2.onmousemove = function(e) {
-    //   cursor1.hor_line.show=cursor2.hor_line.show = false;
-    //   if ( (getMousePos(el2,e).y <= ctx2.canvas.height) &&
-    //   (getMousePos(el2,e).y >= 0) && (getMousePos(el2,e).x <= ctx2.canvas.width) && (getMousePos(el2,e).x >= 0) ){
-    //     cursor2.hor_line.y=getMousePos(el2,e).y;
-    //     cursor2.hor_line.show=true;
-    //     cursor2.ver_line.x=cursor1.ver_line.x=getMousePos(el2,e).x;
-    //   };
-    // };
 
     $(document).ready(function() {
       $(document).mousemove(function() {
@@ -137,19 +118,34 @@
     });
 
 
+    find_closest_elem = function (coord_list, x){
+      for (i=0; i<coord_list.length-1; i++)
+        if (Math.abs(x-coord_list[i])<Math.abs(x-coord_list[i+1])) return i;
+      return coord_list.length-1;
+    }
+
 
     drawCursor = function() {
 
-      rnd_x = 2 * (ctx1.canvas.width - 10) / quantity;
+      var meta = chart1.getDatasetMeta(0);
+      var coord = [];
+      for (i=0; i<meta.data.length; i++){
+        coord.push(meta.data[i]._model.x);
+      }
 
       if (cursor1.hor_line.show || cursor2.hor_line.show) {
+
+        rnd_x = 1;
+
+        let i = find_closest_elem(coord,cursor1.ver_line.x);
+        console.log(data[data.length-quantity+i]);
         ctx1.beginPath();
-        ctx1.moveTo(Math.round(cursor1.ver_line.x / rnd_x) * rnd_x + 0.5, 0.5);
-        ctx1.lineTo(Math.round(cursor1.ver_line.x / rnd_x) * rnd_x + 0.5, ctx1.canvas.height - 0.5);
+        ctx1.moveTo(coord[i], 0.5);
+        ctx1.lineTo(coord[i], ctx1.canvas.height - 0.5);
         ctx1.stroke();
         ctx2.beginPath();
-        ctx2.moveTo(Math.round(cursor2.ver_line.x / rnd_x) * rnd_x + 0.5, 0.5);
-        ctx2.lineTo(Math.round(cursor2.ver_line.x / rnd_x) * rnd_x + 0.5, ctx2.canvas.height - 0.5);
+        ctx2.moveTo(coord[i], 0.5);
+        ctx2.lineTo(coord[i], ctx2.canvas.height - 0.5);
         ctx2.stroke();
 
         if (cursor1.hor_line.show) {
@@ -410,6 +406,7 @@
         },
       },
     });
+
   </script>
 </body>
 
