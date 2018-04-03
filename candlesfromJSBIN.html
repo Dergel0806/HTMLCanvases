@@ -51,7 +51,7 @@
 
     //           OPTIONS!!!!!!!!!
     ctx1.lineWidth = ctx2.lineWidth = 1;
-    var rnd_x = 50; //for vertical line
+    var rnd_x; //for vertical line
     var rnd_y = 1; //for horizontal line
 
 
@@ -134,8 +134,6 @@
       }
 
       if (cursor1.hor_line.show || cursor2.hor_line.show) {
-
-        rnd_x = 1;
 
         let i = find_closest_elem(coord,cursor1.ver_line.x);
         console.log(data[data.length-quantity+i]);
